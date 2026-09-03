@@ -1,4 +1,4 @@
-﻿import { FastifyInstance } from "fastify";
+import { FastifyInstance } from "fastify";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import prisma from "../lib/prisma";
@@ -29,8 +29,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
       select: { id: true, username: true, email: true, xp: true, level: true },
     });
 
-    const accessToken = fastify.jwt.sign({ userId: user.id, email: user.email, username: user.username }, { expiresIn: "15m" });
-    const refreshToken = fastify.jwt.sign({ userId: user.id, type: "refresh" }, { expiresIn: "30d" });
+    const accessToken = fastify.jwt.sign({ userId: user.id, email: user.email, username: user.username } as any, { expiresIn: "15m" });
+    const refreshToken = fastify.jwt.sign({ userId: user.id, type: "refresh" } as any, { expiresIn: "30d" });
 
     return reply.status(201).send({ success: true, data: { user, accessToken, refreshToken } });
   });
@@ -45,8 +45,8 @@ export default async function authRoutes(fastify: FastifyInstance) {
       return reply.status(401).send({ success: false, error: "Invalid credentials" });
     }
 
-    const accessToken = fastify.jwt.sign({ userId: user.id, email: user.email, username: user.username }, { expiresIn: "15m" });
-    const refreshToken = fastify.jwt.sign({ userId: user.id, type: "refresh" }, { expiresIn: "30d" });
+    const accessToken = fastify.jwt.sign({ userId: user.id, email: user.email, username: user.username } as any, { expiresIn: "15m" });
+    const refreshToken = fastify.jwt.sign({ userId: user.id, type: "refresh" } as any, { expiresIn: "30d" });
 
     return reply.send({
       success: true,

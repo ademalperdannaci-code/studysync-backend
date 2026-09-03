@@ -1,4 +1,4 @@
-﻿import { FastifyInstance } from "fastify";
+import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
@@ -73,7 +73,7 @@ export default async function roomRoutes(fastify: FastifyInstance) {
     if (!room) return reply.status(404).send({ success: false, error: "Room not found" });
     if (!room.voiceEnabled) return reply.status(400).send({ success: false, error: "Voice not enabled" });
     try {
-      const token = generateLiveKitToken(room.livekitRoomName, request.user.userId, request.user.username);
+      const token = await generateLiveKitToken(room.livekitRoomName, request.user.userId, request.user.username);
       return reply.send({ success: true, data: { token, livekitUrl: process.env.LIVEKIT_URL } });
     } catch {
       return reply.status(500).send({ success: false, error: "Failed to generate voice token" });

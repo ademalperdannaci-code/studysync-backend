@@ -1,4 +1,4 @@
-﻿import { FastifyInstance } from "fastify";
+import { FastifyInstance } from "fastify";
 import { authenticate } from "../middleware/auth";
 import prisma from "../lib/prisma";
 
@@ -27,7 +27,7 @@ export default async function syncRoutes(fastify: FastifyInstance) {
     const userId = request.user.userId;
 
     for (const s of subjects) {
-      await prisma.subject.upsert({ where: { id: s.id }, update: { name: s.name, color: s.color, icon: s.icon }, create: { id: s.id, ...s, userId } });
+      await prisma.subject.upsert({ where: { id: s.id }, update: { name: s.name, color: s.color, icon: s.icon }, create: { ...s, userId } });
     }
     for (const t of topics) {
       await prisma.topic.upsert({

@@ -1,4 +1,4 @@
-﻿import { Server as SocketServer } from "socket.io";
+import { Server as SocketServer } from "socket.io";
 import { Server as HttpServer } from "http";
 import prisma from "../lib/prisma";
 import redis from "../lib/redis";
@@ -59,8 +59,8 @@ export function setupSocketServer(httpServer: HttpServer) {
       socket.join(roomId);
       await prisma.roomMember.upsert({
         where: { roomId_userId: { roomId, userId } },
-        create: { roomId, userId, status: "ONLINE" },
-        update: { status: "ONLINE" },
+        create: { roomId, userId, status: "STUDYING" },
+        update: { status: "STUDYING" },
       }).catch(() => {});
 
       const members = await prisma.roomMember.findMany({
@@ -86,7 +86,7 @@ export function setupSocketServer(httpServer: HttpServer) {
 
     // ── Status update ──────────────────────────────────────────────────────
     socket.on("update_status", async ({ roomId, status }: { roomId: string; status: string }) => {
-      await prisma.roomMember.updateMany({ where: { roomId, userId }, data: { status } }).catch(() => {});
+      await prisma.roomMember.updateMany({ where: { roomId, userId }, data: { status: status as any } }).catch(() => {});
       socket.to(roomId).emit("status_updated", { userId, status });
     });
 
@@ -132,7 +132,7 @@ export function setupSocketServer(httpServer: HttpServer) {
       }
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log("[Socket] Disconnected:", userId);
       await redis.del("presence:" + userId).catch(() => {});
       const friends = await prisma.friendship.findMany({
