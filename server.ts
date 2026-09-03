@@ -39,10 +39,10 @@ async function start() {
   await fastify.ready();
   setupSocketServer(fastify.server);
 
-  const PORT = parseInt(process.env.PORT || "3000");
-  fastify.listen({ port: PORT, host: "0.0.0.0" }, (err, address) => {
+  const PORT = Number(process.env.PORT) || 3000;
+  fastify.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
     if (err) { console.error(err); process.exit(1); }
-    fastify.log.info(StudySync backend running at  + address);
+    fastify.log.info('StudySync backend running at ' + address);
   });
 }
 
