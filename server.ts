@@ -39,11 +39,13 @@ async function start() {
   await fastify.ready();
   setupSocketServer(fastify.server);
 
-  const PORT = Number(process.env.PORT) || 3000;
-  fastify.listen({ port: PORT, host: '0.0.0.0' }, (err, address) => {
-    if (err) { console.error(err); process.exit(1); }
-    fastify.log.info('StudySync backend running at ' + address);
-  });
-}
+ const PORT = Number(process.env.PORT) || 3000;
+    await fastify.listen({ port: PORT, host: '0.0.0.0' });
+    fastify.log.info(`StudySync backend running on port ${PORT}`);
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
 
-start().catch((err) => { console.error(err); process.exit(1); });
+start();
