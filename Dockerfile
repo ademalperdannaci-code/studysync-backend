@@ -1,14 +1,12 @@
 ﻿FROM node:20-alpine AS builder
-RUN apk add --no-cache openssl openssl-dev libc6-compat
 WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
 FROM node:20-alpine AS runner
-RUN apk add --no-cache openssl openssl-dev libc6-compat
 WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 fastify
 COPY --from=builder /app/dist ./dist

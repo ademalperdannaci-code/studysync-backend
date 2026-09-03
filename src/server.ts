@@ -17,7 +17,8 @@ import leaderboardRoutes from "./routes/leaderboard";
 import userRoutes from "./routes/users";
 import { setupSocketServer } from "./socket/index";
 
-const fastify = Fastify({ logger: { level: process.env.NODE_ENV === "production" ? "warn" : "info" } });
+// Set logger to info even in production so we can see startup logs!
+const fastify = Fastify({ logger: { level: "info" } });
 
 async function start() {
   await fastify.register(cors, { origin: "*" });
@@ -36,13 +37,18 @@ async function start() {
   await fastify.register(leaderboardRoutes);
   await fastify.register(userRoutes);
 
-  const httpServer = createServer(fastify.server);
-  setupSocketServer(httpServer);
+  await fastify.ready();
+  setupSocketServer(fastify.server);
 
-  const PORT = parseInt(process.env.PORT || "3000");
-  httpServer.listen(PORT, "0.0.0.0", () => {
-    fastify.log.info(`StudySync backend running on port ${PORT}`);
-  });
+  const PORT = Number(process.env.PORT) || 3000;
+  
+  try {
+    await fastify.listen({ port: PORT, host: '0.0.0.0' });
+    console.log('[Server] Successfully started and listening on 0.0.0.0:' + PORT);
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
 }
 
 start().catch((err) => { console.error(err); process.exit(1); });
