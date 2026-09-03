@@ -39,9 +39,14 @@ export default async function roomRoutes(fastify: FastifyInstance) {
   fastify.post("/rooms", { preHandler: authenticate }, async (request, reply) => {
     const body = createRoomSchema.safeParse(request.body);
     if (!body.success) return reply.status(400).send({ success: false, error: body.error.issues });
-    const room = await prisma.studyRoom.create({ data: { ...body.data, hostId: request.user.userId } });
-    const gamification = await awardXP({ type: "CREATE_ROOM", userId: request.user.userId });
-    return reply.status(201).send({ success: true, data: room, gamification });
+    try {
+      const room = await prisma.studyRoom.create({ data: { ...body.data, hostId: request.user.userId } });
+      const gamification = await awardXP({ type: "CREATE_ROOM", userId: request.user.userId });
+      return reply.status(201).send({ success: true, data: room, gamification });
+    } catch (err: any) {
+      console.error("[Rooms] Create error:", err);
+      return reply.status(500).send({ success: false, error: err.message || "Failed to create room" });
+    }
   });
 
   fastify.post("/rooms/:id/join", { preHandler: authenticate }, async (request, reply) => {

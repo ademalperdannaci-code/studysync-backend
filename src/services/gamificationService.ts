@@ -1,4 +1,4 @@
-﻿import prisma from "../lib/prisma";
+import prisma from "../lib/prisma";
 import redis from "../lib/redis";
 
 export interface XPEvent {
@@ -48,10 +48,14 @@ export async function awardXP(event: XPEvent): Promise<{ xp: number; newBadges: 
   const updated = await prisma.user.update({ where: { id: event.userId }, data: { xp: { increment: xpGain } } });
   const newLevel = calculateLevel(updated.xp);
 
-  await redis.zincrby("leaderboard:alltime", xpGain, event.userId);
-  const weekKey = `leaderboard:week:${getWeekKey()}`;
-  await redis.zincrby(weekKey, xpGain, event.userId);
-  await redis.expire(weekKey, 60 * 60 * 24 * 7);
+  try {
+    await redis.zincrby("leaderboard:alltime", xpGain, event.userId);
+    const weekKey = `leaderboard:week:${getWeekKey()}`;
+    await redis.zincrby(weekKey, xpGain, event.userId);
+    await redis.expire(weekKey, 60 * 60 * 24 * 7);
+  } catch (err) {
+    console.error("[Gamification] Redis error (Ignored):", err);
+  }
 
   const newBadges: string[] = [];
 
