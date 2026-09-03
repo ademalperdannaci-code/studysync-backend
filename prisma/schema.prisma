@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String            @id @default(uuid())
+  username          String            @unique
+  email             String            @unique
+  passwordHash      String
+  avatarUrl         String?
+  xp                Int               @default(0)
+  level             Int               @default(1)
+  streakDays        Int               @default(0)
+  lastActiveDate    DateTime?
+  totalStudyMinutes Int               @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  themePreference   String            @default("system")
+  defaultCategory   String            @default("study")
+
+  subjects            Subject[]
+  hostedRooms         StudyRoom[]       @relation("RoomHost")
+  roomMemberships     RoomMember[]
+  pomodoroSessions    PomodoroSession[]
+  badges              UserBadge[]
+  sentFriendships     Friendship[]      @relation("FriendshipSender")
+  receivedFriendships Friendship[]      @relation("FriendshipReceiver")
+  notifications       Notification[]
+}
+
+model Friendship {
+  id        String           @id @default(uuid())
+  userId    String
+  friendId  String
+  status    FriendshipStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+
+  user   User @relation("FriendshipSender", fields: [userId], references: [id])
+  friend User @relation("FriendshipReceiver", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  color     String   @default("#6366f1")
+  icon      String   @default("book")
+  createdAt DateTime @default(now())
+  updatedAt         DateTime          @updatedAt
+  themePreference   String            @default("system")
+  defaultCategory   String            @default("study")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topics Topic[]
+}
+
+model Topic {
+  id               String      @id @default(uuid())
+  subjectId        String
+  title            String
+  status           TopicStatus @default(NOT_STUDIED)
+  estimatedMinutes Int         @default(25)
+  orderIndex       Int         @default(0)
+  completedAt      DateTime?
+  createdAt        DateTime    @default(now())
+  updatedAt         DateTime          @updatedAt
+  themePreference   String            @default("system")
+  defaultCategory   String            @default("study")
+
+  subject          Subject           @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  pomodoroSessions PomodoroSession[]
+}
+
+enum TopicStatus {
+  NOT_STUDIED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model StudyRoom {
+  id              String     @id @default(uuid())
+  hostId          String
+  name            String
+  type            RoomType   @default(PUBLIC)
+  inviteCode      String     @unique @default(cuid())
+  maxCapacity     Int        @default(8)
+  voiceEnabled    Boolean    @default(true)
+  livekitRoomName String     @unique @default(cuid())
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt         DateTime          @updatedAt
+  themePreference   String            @default("system")
+  defaultCategory   String            @default("study")
+
+  host             User              @relation("RoomHost", fields: [hostId], references: [id])
+  members          RoomMember[]
+  pomodoroSessions PomodoroSession[]
+}
+
+enum RoomType {
+  PUBLIC
+  PRIVATE
+}
+
+model RoomMember {
+  roomId   String
+  userId   String
+  status   MemberStatus @default(STUDYING)
+  joinedAt DateTime     @default(now())
+
+  room StudyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+}
+
+enum MemberStatus {
+  STUDYING
+  ON_BREAK
+  MUTED
+}
+
+model PomodoroSession {
+  id              String    @id @default(uuid())
+  userId          String
+  roomId          String?
+  topicId         String?
+  workMinutes     Int       @default(25)
+  breakMinutes    Int       @default(5)
+  cyclesCompleted Int       @default(0)
+  synced          Boolean   @default(true)
+  startedAt       DateTime
+  endedAt         DateTime?
+  createdAt       DateTime  @default(now())
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room  StudyRoom? @relation(fields: [roomId], references: [id])
+  topic Topic?     @relation(fields: [topicId], references: [id])
+}
+
+model UserBadge {
+  id       String   @id @default(uuid())
+  userId   String
+  badgeKey String
+  earnedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeKey])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // FRIEND_REQUEST, ROOM_INVITE, SYSTEM
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
