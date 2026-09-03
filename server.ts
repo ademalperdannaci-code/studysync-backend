@@ -20,6 +20,7 @@ const fastify = Fastify({
 
 const start = async () => {
   try {
+    // 1. Temel eklentiler
     await fastify.register(cors, { origin: '*' });
     await fastify.register(helmet);
     await fastify.register(jwt, {
@@ -27,11 +28,18 @@ const start = async () => {
     });
     await fastify.register(rateLimit, { max: 100, timeWindow: '1 minute' });
 
+    // 2. Health rotası
     fastify.get('/health', async () => ({
       status: 'ok',
       timestamp: new Date().toISOString(),
     }));
 
+    // 3. Render portu hemen görsün diye listen çağrısını erkene alıyoruz
+    const PORT = Number(process.env.PORT) || 3000;
+    await fastify.listen({ port: PORT, host: '0.0.0.0' });
+    console.log(`StudySync listening on 0.0.0.0:${PORT}`);
+
+    // 4. Diğer rotaları ve soketi arka planda bağla
     await fastify.register(authRoutes);
     await fastify.register(notificationRoutes);
     await fastify.register(taskRoutes);
@@ -40,10 +48,6 @@ const start = async () => {
     await fastify.register(syncRoutes);
     await fastify.register(leaderboardRoutes);
     await fastify.register(userRoutes);
-
-    const PORT = Number(process.env.PORT) || 3000;
-    await fastify.listen({ port: PORT, host: '0.0.0.0' });
-    console.log(`StudySync running on 0.0.0.0:${PORT}`);
 
     try {
       setupSocketServer(fastify.server);
