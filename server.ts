@@ -41,11 +41,15 @@ const start = async () => {
     await fastify.register(leaderboardRoutes);
     await fastify.register(userRoutes);
 
-    setupSocketServer(fastify.server);
-
     const PORT = Number(process.env.PORT) || 3000;
     await fastify.listen({ port: PORT, host: '0.0.0.0' });
     console.log(`StudySync running on 0.0.0.0:${PORT}`);
+
+    try {
+      setupSocketServer(fastify.server);
+    } catch (wsErr) {
+      fastify.log.error('WebSocket init error:', wsErr);
+    }
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
