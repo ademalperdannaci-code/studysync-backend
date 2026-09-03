@@ -2,9 +2,10 @@
   "name": "studysync-backend",
   "version": "1.0.0",
   "private": false,
-  "scripts": {
+ "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "postinstall": "npx prisma generate",`n    "build": "tsc",
+    "postinstall": "npx prisma generate",
+    "build": "tsc",
     "start": "node dist/server.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
