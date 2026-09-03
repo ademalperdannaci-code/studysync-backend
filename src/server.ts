@@ -28,6 +28,7 @@ async function start() {
   fastify.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
 
   await fastify.register(authRoutes);
+  await fastify.register(notificationRoutes);
   await fastify.register(taskRoutes);
   await fastify.register(roomRoutes);
   await fastify.register(pomodoroRoutes);
