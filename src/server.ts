@@ -13,6 +13,7 @@ import taskRoutes from "./routes/tasks";
 import roomRoutes from "./routes/rooms";
 import pomodoroRoutes from "./routes/pomodoro";
 import syncRoutes from "./routes/sync";
+import chatRoutes from "./routes/chat";
 import leaderboardRoutes from "./routes/leaderboard";
 import userRoutes from "./routes/users";
 import { setupSocketServer } from "./socket/index";
@@ -34,6 +35,7 @@ async function start() {
   await fastify.register(roomRoutes);
   await fastify.register(pomodoroRoutes);
   await fastify.register(syncRoutes);
+  fastify.register(chatRoutes);
   await fastify.register(leaderboardRoutes);
   await fastify.register(userRoutes);
 

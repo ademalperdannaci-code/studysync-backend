@@ -1,7 +1,8 @@
-﻿import { FastifyInstance } from "fastify";
+import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
+import { sendPushNotification } from "../services/pushService";
 
 export default async function userRoutes(fastify: FastifyInstance) {
   // Kendi profili getir
@@ -42,6 +43,7 @@ export default async function userRoutes(fastify: FastifyInstance) {
     const existing = await prisma.friendship.findFirst({ where: { OR: [{ userId: request.user.userId, friendId }, { userId: friendId, friendId: request.user.userId }] } });
     if (existing) return reply.status(409).send({ success: false, error: "Friendship already exists" });
     const friendship = await prisma.friendship.create({ data: { userId: request.user.userId, friendId, status: "PENDING" } });
+    sendPushNotification(friendId, "Yeni Arkadaşlık İsteği", request.user.username + " sana arkadaşlık isteği gönderdi", { url: "/(app)/friends" });
     return reply.status(201).send({ success: true, data: friendship });
   });
 

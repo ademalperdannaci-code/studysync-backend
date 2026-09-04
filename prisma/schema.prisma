@@ -31,6 +31,8 @@ model User {
   sentFriendships     Friendship[]      @relation("FriendshipSender")
   receivedFriendships Friendship[]      @relation("FriendshipReceiver")
   notifications       Notification[]
+  sentMessages        DirectMessage[]   @relation("MessageSender")
+  receivedMessages    DirectMessage[]   @relation("MessageReceiver")
 }
 
 model Friendship {
@@ -171,4 +173,21 @@ model Notification {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model DirectMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  content    String
+  status     MessageStatus @default(SENT)
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("MessageSender", fields: [senderId], references: [id])
+  receiver User @relation("MessageReceiver", fields: [receiverId], references: [id])
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
 }

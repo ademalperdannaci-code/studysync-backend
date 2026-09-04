@@ -124,6 +124,9 @@ export function setupSocketServer(httpServer: HttpServer) {
     });
 
     // ── Disconnect ─────────────────────────────────────────────────────────
+    socket.on("room_chat", ({ roomId, message }: { roomId: string; message: any }) => {
+      socket.to(roomId).emit("room_chat", message);
+    });
     socket.on("disconnecting", async () => {
       for (const roomId of socket.rooms) {
         if (roomId === socket.id) continue;
